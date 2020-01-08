@@ -1,41 +1,23 @@
 package com.haliri.israj.javajobscheduler.service;
 
 import com.haliri.israj.javajobscheduler.App;
+import com.haliri.israj.javajobscheduler.enumeration.TaskType;
 import com.haliri.israj.javajobscheduler.job.BiffBuzzJob;
 import com.haliri.israj.javajobscheduler.job.HelloWorldJob;
-import com.haliri.israj.javajobscheduler.model.TaskType;
 import org.quartz.*;
 import org.quartz.impl.JobDetailImpl;
-import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JobService {
 
-    private Scheduler scheduler;
+    @Autowired
+    SchedulerFactoryBean schedulerFactoryBean;
 
-    public JobService() {
-        SchedulerFactory factory = new StdSchedulerFactory();
-
-        try {
-            scheduler = factory.getScheduler();
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
-
-        init();
-    }
-
-    private void init() {
-        try {
-            scheduler.start();
-        } catch (SchedulerException e) {
-            App.getLogger(this).error("ERROR START SCHEDULER : {}", e.getLocalizedMessage());
-        }
-    }
-
-    public void scheduleJob(TaskType taskType, java.lang.Class<? extends org.quartz.Job> jobClass, String cronExpression) {
-        App.getLogger(this).info("INIT SCHEDULER");
+    public void scheduleJob(TaskType taskType, Class<? extends org.quartz.Job> jobClass, String cronExpression) {
+        App.getLogger(this).info("START SCHEDULER FOR : {}", taskType.name());
 
         JobDetailImpl jobDetail = new JobDetailImpl();
         jobDetail.setName(taskType.name());
@@ -49,6 +31,8 @@ public class JobService {
                 .build();
 
         try {
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+
             scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             App.getLogger(this).error("ERROR START SCHEDULER : {}", e.getLocalizedMessage());
@@ -57,6 +41,8 @@ public class JobService {
 
     public void deleteJob(TaskType taskType) {
         try {
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+
             scheduler.deleteJob(new JobKey(taskType.name()));
             App.getLogger(this).info("JOB {} STOPPED", taskType.name());
         } catch (Exception ex) {
@@ -73,6 +59,4 @@ public class JobService {
 
         return null;
     }
-
-
 }

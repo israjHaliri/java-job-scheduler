@@ -1,6 +1,6 @@
 package com.haliri.israj.javajobscheduler.controller;
 
-import com.haliri.israj.javajobscheduler.model.TaskType;
+import com.haliri.israj.javajobscheduler.enumeration.TaskType;
 import com.haliri.israj.javajobscheduler.service.JobService;
 import org.quartz.Job;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,29 +17,15 @@ public class JobController {
 
     @PostMapping("/jobs")
     public Object saveJob(@RequestParam String type) {
-        Object clz = jobService.getJobClass(TaskTypeConvertor(type));
-
-        jobService.scheduleJob(TaskTypeConvertor(type), (Class<? extends Job>) clz, "0/5 * * * * ?");
+        jobService.scheduleJob(TaskType.taskTypeConvertor(type), (Class<? extends Job>) jobService.getJobClass(TaskType.taskTypeConvertor(type)), "0/5 * * * * ?");
 
         return true;
     }
 
     @DeleteMapping("/jobs")
     public Object deleteJob(@RequestParam String type) {
-        jobService.deleteJob(TaskTypeConvertor(type));
+        jobService.deleteJob(TaskType.taskTypeConvertor(type));
 
         return true;
-    }
-
-    private TaskType TaskTypeConvertor(String param) {
-        TaskType taskType;
-
-        try {
-            taskType = TaskType.valueOf(param);
-        } catch (IllegalArgumentException e) {
-            taskType = null;
-        }
-
-        return taskType;
     }
 }
